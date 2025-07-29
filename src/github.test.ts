@@ -7,9 +7,8 @@ import {
 } from "./github";
 import { Octokit } from "@octokit/rest";
 import { Context } from "@actions/github/lib/context";
-import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 import { mock, mockDeep } from "jest-mock-extended";
-import * as artifact from "@actions/artifact";
+import { ArtifactClient } from "@actions/artifact";
 
 describe("github.ts", () => {
   let mockContext: Context;
@@ -66,13 +65,13 @@ describe("github.ts", () => {
   });
 
   describe("uploadTraceLogArtifact", () => {
-    let mockArtifactClient: artifact.ArtifactClient;
+    let mockArtifactClient: ArtifactClient;
     const jobName = "lint-and-format-check";
     const stepName = "run tests";
     const filePath = "trace.log";
 
     beforeEach(() => {
-      mockArtifactClient = mockDeep<artifact.ArtifactClient>();
+      mockArtifactClient = mockDeep<ArtifactClient>();
     });
 
     it("successfully uploads artifact", async () => {
@@ -81,11 +80,10 @@ describe("github.ts", () => {
         mockArtifactClient.uploadArtifact as jest.MockedFunction<
           typeof mockArtifactClient.uploadArtifact
         >;
-      mockUploadArtifact.mockResolvedValue(
-        mock<artifact.UploadResponse>({
-          failedItems: [],
-        })
-      );
+      mockUploadArtifact.mockResolvedValue({
+        id: 1,
+        size: 1024,
+      });
       await uploadTraceLogArtifact({
         jobName,
         stepName,
@@ -106,11 +104,7 @@ describe("github.ts", () => {
         mockArtifactClient.uploadArtifact as jest.MockedFunction<
           typeof mockArtifactClient.uploadArtifact
         >
-      ).mockResolvedValue(
-        mock<artifact.UploadResponse>({
-          failedItems: [`{${jobName}}{${stepName}}`],
-        })
-      );
+      ).mockRejectedValue(new Error("Upload failed"));
 
       await expect(
         uploadTraceLogArtifact({
@@ -119,7 +113,7 @@ describe("github.ts", () => {
           path: filePath,
           artifactClient: mockArtifactClient,
         })
-      ).rejects.toThrowError();
+      ).rejects.toThrowError("Upload failed");
     });
   });
 });

@@ -1,7 +1,7 @@
 import { Context } from "@actions/github/lib/context";
 import { GitHub } from "@actions/github/lib/utils";
 import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
-import * as artifact from "@actions/artifact";
+import { ArtifactClient } from "@actions/artifact";
 
 export type ListJobsForWorkflowRunType =
   RestEndpointMethodTypes["actions"]["listJobsForWorkflowRun"]["response"];
@@ -56,7 +56,7 @@ export type UploadTraceLogArtifactParams = {
   jobName: string;
   stepName: string;
   path: string;
-  artifactClient: artifact.ArtifactClient;
+  artifactClient: ArtifactClient;
 };
 export async function uploadTraceLogArtifact({
   jobName,
@@ -70,7 +70,8 @@ export async function uploadTraceLogArtifact({
     [path],
     "."
   );
-  if (uploadResponse.failedItems.length > 0) {
+  // The new API doesn't have failedItems, it throws on error
+  if (!uploadResponse.id) {
     throw new Error(`Failed to upload ${path} to Artifact<${artifactKey}>`);
   }
 }

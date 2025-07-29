@@ -1,5 +1,5 @@
 import * as github from "@actions/github";
-import * as artifact from "@actions/artifact";
+import { DefaultArtifactClient } from "@actions/artifact";
 import * as core from "@actions/core";
 import { trace } from "@opentelemetry/api";
 import { createTracerProvider } from "./trace-provider";
@@ -40,7 +40,7 @@ export async function run() {
   try {
     const tracer = provider.getTracer("Trace Test Artifact");
     const octokit = github.getOctokit(ghToken);
-    const artifactClient = artifact.create();
+    const artifactClient = new DefaultArtifactClient();
 
     core.info(`Verify Job<${jobName}> and Step<${stepName}>`);
     const step = await getWorkflowRunStep({
