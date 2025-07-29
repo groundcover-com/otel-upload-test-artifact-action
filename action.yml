@@ -3,7 +3,7 @@ description: Uploads a Github Artifact of Otel Traces
 author: Inception Health
 
 runs:
-  using: node16
+  using: node20
   main: dist/index.js
 
 inputs:
